@@ -1,0 +1,39 @@
+body{
+    background-color: rgba(0, 123, 255, 0.06);
+}
+.logo-image{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:15px; 
+    margin-bottom:15px; 
+}
+.card{
+    background: #fff;
+    padding: 15px;
+}
+.margin-10{
+    margin: 10px
+}
+
+.form-control:focus{
+    box-shadow: none;
+}
+.icon{
+    width:16px;
+}
+.userLocation{
+    border-right: 0;
+}
+.hover-map{
+    border-left: 0;
+background: transparent;
+}
+.hover-map:hover{
+background-color:#f2c800;
+}
+ 
+.card-venues{
+    width: 100%;
+    margin-top: 10px;
+}
