@@ -37,3 +37,16 @@ background-color:#f2c800;
     width: 100%;
     margin-top: 10px;
 }
+.modal-dialog{
+    position: absolute;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    margin: -1px;
+}
+.modal-content{
+    height:100%
+}
+.venue-item{
+cursor: pointer;
+} 

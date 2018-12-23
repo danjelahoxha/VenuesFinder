@@ -6,57 +6,70 @@ var venueFinder = {
     };
     $.extend(venueFinder.config, settings);
     venueFinder.getCategories();
-    venueFinder.getGeoLocation();
+     
     $(document).on('change', '.userLocation, .venuecategories', function () {
       venueFinder.getVenues();
+      venueFinder.getVenueDetails();
     });
-
   },
-  getGeoLocation() {
-    $(".hover-map").on("click", function () {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-          venueFinder.getVenues(position.coords.latitude, position.coords.longitude)
-        });
-      } else {
-        $(".alert-danger").show();
-        setTimeout(function () {
-          $(".alert-danger").hide();
-        }, 3000);
-      }
-    })
-  },
-
-  getVenues(lang, length) {
+   //gets the list of venues on Search 
+  getVenues() {
     $('.card-venues').show();
     var searchValue = $(".userLocation").val();
     var categoryid = $(".venuecategories").val();
-    var _url = venueFinder.buildUrl(searchValue, categoryid, lang, length);
+    var _url = venueFinder.buildUrl(searchValue, categoryid);
     $('ul.venues').empty();
-    $.ajax({
-      url: _url,
-      dataType: 'json',
-      success: function (data) {
-        console.log(data.response);
-        venueFinder.buildVenuesList(data.response.venues);
-      },
-      error: function (xhr, error) {
-        $('.venues').append('<li class="list-group-item" >Sorry, We could not find any venues</li>');
-      }
-    });
+    venueFinder.getData(_url, function (data) {
+      venueFinder.buildVenuesList(data.response.venues);
+    }, function (xhr, error) {
+      $('.venues').append('<li class="list-group-item" >Sorry, We could not find any venues</li>');
+    }
+    );
 
   },
+  //builds items of the  list 
   buildVenuesList: function (venues) {
     $.each(venues, function (i, venue) {
-    //  var imgurl = venue.categories[0].icon.prefix + venue.categories[0].icon.suffix;
-      $('.venues').append('<li class="list-group-item" '
-        + 'data-venuId="' + venue.location.id + '">'
-      //  + '<img src ="' + imgurl + '" /> '
+      $('.venues').append('<li class="list-group-item venue-item" '
+        + 'data-venueId="' + venue.id + '">'
         + venue.name
         + '<br /><small> ' + venue.location.formattedAddress.join(", ")
         + '</li>');
     });
+    venueFinder.getVenueDetails();
   },
+// gets specific data of a venue and opens the modal , any additional data in modal can be added here
+  getVenueDetails: function () {
+    $(".venue-item").off("click").on("click", function () {
+      var id = $(this).attr("data-venueId");
+      var venueUrl = "https://api.foursquare.com/v2/venues/" + id
+        + '?client_id=' + venueFinder.config.clientId
+        + '&client_secret=' + venueFinder.config.clientSecret
+        + '&query=&v=20181220&m=foursquare';
+      venueFinder.getData(venueUrl, function (data) {
+        $(".modal-title").html(data.response.venue.name);
+        console.log(data.response.venue)
+        $(".modal-body").empty();
+
+        $(".modal-body").append(data.response.venue.description);
+        if (data.response.venue.categories.length > 0)
+          $(".modal-body").append("<br /><strong>Categories: </strong>" +
+            $.map(data.response.venue.categories, function (obj) {
+              return obj.name
+            }).join(', ')
+          );
+
+        $(".modal-body").append("<br /> <strong>Location: </strong>" + data.response.venue.location.formattedAddress.join(','));
+        if (typeof data.response.venue.bestPhoto != 'undefined'){
+          $(".modal-body").append("<br /> <img src='" + data.response.venue.bestPhoto.prefix + "300x300" + data.response.venue.bestPhoto.suffix + "' />");
+        }else{
+          $(".modal-body").append("<br /> <i>No photo Available </i>");
+        }
+        $(".modal").modal("show");
+      })
+    })
+  },
+  //get main categories from foursquare api to fill the dropdown select
   getCategories: function () {
     var _urlCategories = 'https://api.foursquare.com/v2/venues/categories?&client_id='
       + venueFinder.config.clientId
@@ -73,7 +86,8 @@ var venueFinder = {
         return;
       });
   },
-  buildUrl: function (searchValue, categoryId, lang, length) {
+  //get search parameters to build url
+  buildUrl: function (searchValue, categoryId) {
     var _url = '';
     if (searchValue != '') {
       _url = 'https://api.foursquare.com/v2/venues/search?'
@@ -82,16 +96,10 @@ var venueFinder = {
         + '&client_secret=' + venueFinder.config.clientSecret
         + '&categoryId=' + categoryId
         + '&query=&v=20181220&m=foursquare';
-    } else if (typeof lang != 'undefined' && typeof length != 'undefined' && lang != '' && length != '') {
-      _url = 'https://api.foursquare.com/v2/venues/search?'
-        + '&ll=' + lang + ',' + length
-        + '&client_id=' + venueFinder.config.clientId
-        + '&client_secret=' + venueFinder.config.clientSecret
-        + '&categoryId=' + categoryId
-        + '&query=&v=20181220&m=foursquare';
-    }
+    }  
     return _url;
   },
+  //ajax call function
   getData: function (_url, _success, _error) {
     $.ajax({
       url: _url,
@@ -118,8 +126,4 @@ $(document).ready(function () {
     width: '100%',
     height: '400px',
   });
-
-
-
-
 });
