@@ -50,3 +50,6 @@ background-color:#f2c800;
 .venue-item{
 cursor: pointer;
 } 
+.search-btn{
+    margin-top: 30px;
+}
